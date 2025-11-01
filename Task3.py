@@ -1,12 +1,8 @@
-# Task 3: Building a Simple Information Retrieval System (20 Marks)
-
+# Your code for Task 3 here
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
-# -----------------------------
-# Step 1: Define the document corpus
-# -----------------------------
 document_corpus = [
     "The field of machine learning has seen rapid growth in recent years, especially in deep learning.",
     "Natural language processing allows machines to understand and respond to human text.",
@@ -30,51 +26,27 @@ document_corpus = [
     "Evaluating model performance requires a good choice of metrics such as F1-score and RMSE."
 ]
 
-# -----------------------------
-# Step 2: Create and fit the TF-IDF vectorizer
-# -----------------------------
+# Create and fit the vectorizer
 vectorizer = TfidfVectorizer()
+
+# Transform the corpus to DTM
 doc_term_matrix = vectorizer.fit_transform(document_corpus)
 
-
-# -----------------------------
-# Step 3: Define the ranking function
-# -----------------------------
 def rank_documents(query, vectorizer, doc_term_matrix, top_n=3):
-    """
-    Rank documents based on cosine similarity with the query.
+    vec_query = vectorizer.transform([query])
+    similarities = cosine_similarity(vec_query, doc_term_matrix).flatten()
 
-    Parameters:
-        query (str): The input query string
-        vectorizer (TfidfVectorizer): The fitted TF-IDF vectorizer
-        doc_term_matrix (sparse matrix): TF-IDF document-term matrix
-        top_n (int): Number of top documents to return
-
-    Returns:
-        List of tuples: (rank, document_index, document_text, similarity_score)
-    """
-    # Transform the query into TF-IDF vector
-    query_vec = vectorizer.transform([query])
-
-    # Compute cosine similarity between query and all documents
-    similarities = cosine_similarity(query_vec, doc_term_matrix).flatten()
-
-    # Get indices of top_n documents sorted by similarity
+    # Get indices of top_n documents, sorted by similarity
     top_indices = similarities.argsort()[::-1][:top_n]
 
-    # Return ranked results
     results = []
-    for rank, idx in enumerate(top_indices, start=1):
-        results.append((rank, idx, document_corpus[idx], similarities[idx]))
+    for rank, index in enumerate(top_indices, start=1):  # 从1开始为每个索引分配排名号
+        results.append((rank, index, document_corpus[index], similarities[index]))
     return results
 
-
-# -----------------------------
-# Step 4: Demonstrate with a sample query
-# -----------------------------
+# Demonstrate with a sample query
 query = "deep learning models for vision"
 ranked_docs = rank_documents(query, vectorizer, doc_term_matrix, top_n=3)
-
 print(f"Top {len(ranked_docs)} documents for the query: '{query}'\n")
-for rank, idx, doc, score in ranked_docs:
-    print(f"Rank {rank} (Doc {idx}, Score={score:.4f}): {doc}\n")
+for rank, index, document, similarity in ranked_docs:
+    print(f"Rank {rank}: (the {index}th document) {document} | Score = {similarity:.4f}")
