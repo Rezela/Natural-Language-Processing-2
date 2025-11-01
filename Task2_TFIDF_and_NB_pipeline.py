@@ -1,4 +1,4 @@
-# Task 2: Text Classification with TF-IDF and Naive Bayes
+# Your code for Task 2 here
 import os
 import urllib.request
 import pandas as pd
@@ -8,57 +8,58 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score, classification_report
 
+# Load the dataset, e.g, as follows. But you may modify it.
+# df = pd.read_csv('path_to_your_dataset/SMSSpamCollection', sep='\t', header=None, names=['label', 'message'])
 
-# 1. 下载并加载数据集
+# download dataset
 dataset_url = "https://archive.ics.uci.edu/ml/machine-learning-databases/00228/smsspamcollection.zip"
 dataset_zip = "smsspamcollection.zip"
 dataset_file = "SMSSpamCollection"
 
-# 如果本地没有数据集，就下载并解压
 if not os.path.exists(dataset_file):
     print("Downloading dataset...")
+    # download
     urllib.request.urlretrieve(dataset_url, dataset_zip)
+    # unzip
     import zipfile
     with zipfile.ZipFile(dataset_zip, 'r') as zip_ref:
-        zip_ref.extractall(".")
+        zip_ref.extractall(".")  # unzip to current directory
     print("Dataset downloaded and extracted.")
 
-
-# 读取数据
+# Load the dataset, Tab("\t") as separator, without a line of header, column 1: label, column 2: message
 df = pd.read_csv(dataset_file, sep="\t", header=None, names=["label", "message"])
 print("Dataset loaded. Shape:", df.shape)
 print(df.head())
 
-# 2. Split the dataset (80% train, 20% test)
-X = df["message"]
+# Split data
+x = df["message"]
 y = df["label"]
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42, stratify=y
+# set a random seed: 28, stratify=y to make sure test size has same proportion of each class as the whole dataset
+x_train, x_test, y_train, y_test = train_test_split(
+    x, y, test_size=0.2, random_state=28, stratify=y
 )
 
-# 3. Create a pipeline: TF-IDF + MultinomialNB
+# Create and train the pipeline
 pipeline = Pipeline([
     ("tfidf", TfidfVectorizer()),
     ("nb", MultinomialNB())
 ])
 
-# 4. Train the pipeline
-pipeline.fit(X_train, y_train)
+# Train the pipeline
+pipeline.fit(x_train, y_train)
 
-# 5. Evaluate the model
-y_pred = pipeline.predict(X_test)
+# Evaluate the model
+y_pred = pipeline.predict(x_test)
 
-print("Model Accuracy:", accuracy_score(y_test, y_pred))
-print("\nClassification Report:\n", classification_report(y_test, y_pred))
+print("Accuracy: ", accuracy_score(y_test, y_pred))
+print("\nClassification report:\n", classification_report(y_test, y_pred))
 
-# 6. Predict on new messages
+# Predict on new messages
 new_messages = [
     "Congratulations! You've won a $1,000 gift card. Go to http://example.com to claim now.",
     "Hi mom, I'll be home for dinner tonight."
 ]
-
 predictions = pipeline.predict(new_messages)
-
-for msg, pred in zip(new_messages, predictions):
-    print(f"Message: {msg}\nPredicted class: {pred}\n")
+for message, prediction in zip(new_messages, predictions):  # 两个列表并行配对遍历
+    print(f"Message: {message}\nPrediction: {prediction}\n")
